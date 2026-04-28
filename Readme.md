@@ -18,15 +18,15 @@ A two-line status bar for the Claude Code TUI showing context window usage, sess
 
 **Line 2 — Metrics**
 ```
- ██████░░░░ 58%/200k  │  $0.1847  22m5s  │  +312/-97  │  ••••·····41% 5h  ••········18% 7d  ↺ 2h14m
+ ██████░░░░ 58%/200k  │  $0.1847  22m5s  │  +312/-97  │  ••••·····41% 2h14m  ••········18% 6d5h
 ```
 - Context window progress bar (color-coded: green → yellow → orange → red)
 - Session cost + elapsed time
 - Lines added / removed
 - Rate limit bars for the 5-hour and 7-day windows *(Pro/Max only)*
-  - Cyan for the 5h window, purple for the 7h window
+  - Cyan for the 5h window, purple for the 7d window
   - Both turn red above 80%
-  - Countdown to reset (`↺ 2h14m`)
+  - Each bar label shows time remaining until that window resets (e.g. `2h14m`, `6d5h`)
 
 ---
 
@@ -119,7 +119,7 @@ Context bar thresholds (in the script):
 - It appears after the first API response in a session
 
 **Reset time showing in minutes only**
-- Make sure you're on the latest version of the script — earlier versions didn't convert minutes to `Xh Ym` format
+- Make sure you're on the latest version of the script — earlier versions showed a separate `↺` indicator instead of inline countdowns
 
 ---
 

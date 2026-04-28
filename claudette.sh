@@ -19,6 +19,7 @@ LINES_DEL=$(echo "$input"| jq -r '.cost.total_lines_removed // 0')
 RATE_5H=$(echo "$input"  | jq -r '.rate_limits.five_hour.used_percentage // empty')
 RATE_7D=$(echo "$input"  | jq -r '.rate_limits.seven_day.used_percentage // empty')
 RESET_5H=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
+RESET_7D=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
 
 WORKTREE=$(echo "$input" | jq -r '.worktree.name // ""')
 
@@ -80,6 +81,16 @@ rate_color() {
   [ "$p" -ge 80 ] && echo "$RED" || echo "$base"
 }
 
+time_until() {
+  local ts=$1 diff m h d
+  diff=$((ts - $(date +%s)))
+  [ "$diff" -le 0 ] && echo "soon" && return
+  m=$((diff / 60)); h=$((m / 60)); d=$((h / 24))
+  if   [ "$d" -ge 1 ]; then echo "${d}d$((h % 24))h"
+  elif [ "$h" -ge 1 ]; then echo "${h}h$((m % 60))m"
+  else echo "${m}m$((diff % 60))s"; fi
+}
+
 # ── Duration ──────────────────────────────────────────────────────
 DUR_SEC=$((DUR_MS / 1000))
 DUR_MINS=$((DUR_SEC / 60)); DUR_SECS=$((DUR_SEC % 60))
@@ -104,16 +115,9 @@ if [ -n "$RATE_5H" ]; then
   R5=$(printf '%.0f' "$RATE_5H"); R7=$(printf '%.0f' "$RATE_7D")
   RC5=$(rate_color "$R5" "$RATE5_COLOR"); RC7=$(rate_color "$R7" "$RATE7_COLOR")
   B5=$(mini_bar "$R5" "$RC5"); B7=$(mini_bar "$R7" "$RC7")
-  if [ -n "$RESET_5H" ]; then
-    NOW=$(date +%s); DIFF=$((RESET_5H - NOW))
-    if [ "$DIFF" -gt 0 ]; then
-      RM=$((DIFF / 60)); RS=$((DIFF % 60))
-      [ "$RM" -ge 60 ] && RESETS=" ${GRAY}↺ $((RM/60))h$((RM%60))m${RESET}" || RESETS=" ${GRAY}↺ ${RM}m${RS}s${RESET}"
-    else
-      RESETS=" ${GRAY}↺ soon${RESET}"
-    fi
-  fi
-  L2="${L2}${SEP}${B5} ${GRAY}5h${RESET}  ${B7} ${GRAY}7d${RESET}${RESETS}"
+  [ -n "$RESET_5H" ] && LABEL5=$(time_until "$RESET_5H") || LABEL5="5h"
+  [ -n "$RESET_7D" ] && LABEL7=$(time_until "$RESET_7D") || LABEL7="7d"
+  L2="${L2}${SEP}${B5} ${GRAY}${LABEL5}${RESET}  ${B7} ${GRAY}${LABEL7}${RESET}"
 fi
 
 # ── Output ────────────────────────────────────────────────────────
